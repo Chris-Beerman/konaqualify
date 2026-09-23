@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Konaqualify — How fast is a Kona slot, actually?</title>
+<meta name="description" content="Every IRONMAN finish time is public. Konaqualify turns them into one answer: the time you need, at the race you're targeting, under the age-graded qualifying system for the IRONMAN World Championship.">
+<meta property="og:title" content="Konaqualify — How fast is a Kona slot, actually?">
+<meta property="og:description" content="The age-graded Kona qualifying calculator, built on every finisher at every race.">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f08a4b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 20 L12 4 L21 20 Z'/%3E%3Cpath d='M8 20 L12 12 L16 20'/%3E%3C/svg%3E">
+<style>
+:root {
+  --bg: #13151a; --bg-2: #171a20; --bg-3: #1c1f26; --line: #22252d; --line-2: #2b2f38;
+  --ink: #e9e6dd; --ink-2: #b3b6be; --ink-3: #8c8f99; --dim: #3d4250;
+  --accent: #f08a4b; --accent-2: #ffb07a; --bad: #d95f5f; --good: #7fb58a;
+  --sans: 'Space Grotesk', 'Helvetica Neue', Arial, sans-serif;
+  --mono: 'JetBrains Mono', 'SF Mono', Menlo, Consolas, monospace;
+}
+* { box-sizing: border-box; }
+html { background: var(--bg); scroll-behavior: smooth; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--sans); -webkit-font-smoothing: antialiased; line-height: 1.5;
+  background-image: linear-gradient(#1a1d24 1px, transparent 1px), linear-gradient(90deg, #1a1d24 1px, transparent 1px); background-size: 48px 48px; }
+a { color: var(--accent); text-decoration: none; } a:hover { color: var(--accent-2); }
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.wrap { max-width: 1312px; margin: 0 auto; padding: 0 24px; }
+.eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); }
+.eyebrow.hot { color: var(--accent); }
+
+nav { border-bottom: 1px solid var(--line); background: rgba(19,21,26,0.85); backdrop-filter: blur(8px); position: sticky; top: 0; z-index: 10; }
+nav .wrap { display: flex; align-items: center; justify-content: space-between; gap: 24px; height: 72px; }
+.brand { display: flex; align-items: center; gap: 12px; font-weight: 600; font-size: 17px; color: var(--ink); letter-spacing: -0.01em; }
+.brand span { color: var(--ink-3); }
+.links { display: flex; gap: 28px; font-size: 14px; }
+.links a { color: var(--ink-2); } .links a:hover { color: var(--ink); }
+.stamp { font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; color: var(--ink-3); text-transform: uppercase; }
+
+.hero { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 64px; padding: 88px 0 72px; align-items: start; }
+h1 { margin: 0; font-size: clamp(40px, 5vw, 64px); line-height: 1.02; font-weight: 500; letter-spacing: -0.03em; text-wrap: balance; }
+h1 em { font-style: normal; color: var(--accent); }
+.lede { margin: 0; font-size: 19px; color: var(--ink-2); max-width: 520px; }
+.stats { display: flex; flex-wrap: wrap; gap: 32px 40px; padding-top: 8px; }
+.stat { display: flex; flex-direction: column; gap: 4px; min-width: 120px; }
+.stat b { font-family: var(--mono); font-size: 30px; font-weight: 500; }
+.stat small { font-size: 13px; color: var(--ink-3); max-width: 220px; }
+
+.panel { background: var(--bg-2); border: 1px solid var(--line-2); border-radius: 8px; padding: 28px; box-shadow: 0 30px 80px rgba(0,0,0,0.45); display: flex; flex-direction: column; gap: 20px; }
+.panel-head { display: flex; justify-content: space-between; align-items: center; }
+.panel-head h2 { margin: 0; font-size: 15px; font-weight: 600; }
+.fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field label { font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3); display: flex; justify-content: space-between; }
+.field label i { font-style: normal; color: var(--ink-3); text-transform: none; letter-spacing: 0; }
+.control { position: relative; height: 44px; display: flex; align-items: center; background: var(--bg-3); border: 1px solid var(--line-2); border-radius: 4px; font-family: var(--mono); font-size: 15px; color: var(--ink); }
+.control select, .control input { appearance: none; -webkit-appearance: none; width: 100%; height: 100%; background: transparent; border: 0; color: var(--ink); font: inherit; padding: 0 14px; outline: none; }
+.control input::placeholder { color: var(--ink-3); }
+.control:focus-within { border-color: var(--accent); }
+.control .hint { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font-size: 12px; color: var(--ink-3); pointer-events: none; }
+.control svg { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); pointer-events: none; }
+.control.out { color: var(--ink-2); } .control.out .val { padding: 0 14px; }
+.control.err { border-color: var(--bad); }
+.control.assumed { border-style: dashed; }
+
+.result { display: flex; flex-direction: column; gap: 12px; background: var(--bg-3); border-radius: 6px; padding: 20px; border-top: 2px solid var(--line-2); min-height: 132px; }
+.result.yes { border-top-color: var(--accent); } .result.no { border-top-color: var(--bad); }
+.verdict { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.verdict b { font-family: var(--mono); font-size: 40px; font-weight: 600; letter-spacing: -0.02em; line-height: 1; color: var(--ink-3); }
+.result.yes .verdict b { color: var(--accent); } .result.no .verdict b { color: var(--bad); }
+.verdict span { font-family: var(--mono); font-size: 14px; color: var(--ink-2); }
+.result p { margin: 0; font-size: 14px; color: var(--ink-2); } .result p .mono { color: var(--ink); }
+
+.years { display: flex; flex-direction: column; gap: 8px; }
+.years .lab { display: flex; justify-content: space-between; font-size: 12px; color: var(--ink-3); }
+.ylist { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 4px; }
+.y { display: flex; flex-direction: column; align-items: center; gap: 6px; font-family: var(--mono); font-size: 11px; color: var(--ink-3); cursor: pointer; padding: 6px 2px; border-radius: 4px; border: 1px solid transparent; }
+.y:hover { background: var(--bg-2); } .y.sel { border-color: var(--line-2); color: var(--ink); }
+.y .dot { width: 100%; height: 6px; border-radius: 3px; background: var(--dim); }
+.y.yes .dot { background: var(--accent); } .y.no .dot { background: var(--bad); opacity: 0.7; } .y.flag .dot { background: repeating-linear-gradient(90deg, var(--dim) 0 3px, transparent 3px 6px); }
+
+section { padding: 24px 0 80px; }
+.two { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 64px; }
+.sec-head { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; border-bottom: 1px solid var(--line); padding-bottom: 14px; margin-bottom: 24px; }
+.sec-head h2 { margin: 0; font-size: 20px; font-weight: 500; } .sec-head h2 span { color: var(--ink-3); }
+.sec-head .eyebrow { white-space: nowrap; }
+
+.chart { display: flex; flex-direction: column; gap: 2px; }
+.row { display: grid; grid-template-columns: 72px minmax(0, 1fr) 84px 40px; align-items: center; gap: 16px; height: 30px; font-family: var(--mono); font-size: 13px; }
+.row .lab { color: var(--ink-2); } .row.hot .lab { color: var(--ink); }
+.row .t { text-align: right; } .row.hot .t { color: var(--accent); }
+.row .s { text-align: right; color: var(--ink-3); font-size: 12px; }
+.row.gap { height: 14px; }
+.track { position: relative; height: 12px; }
+.bar { position: absolute; left: 0; top: 0; height: 12px; background: var(--dim); border-radius: 0 3px 3px 0; }
+.row.hot .bar { background: var(--accent); }
+.bar.f { background: #4a4f60; } .row.hot .bar.f { background: var(--accent); }
+.win { position: absolute; top: -3px; width: 2px; height: 18px; background: var(--ink-2); opacity: 0.8; }
+.axis { display: flex; justify-content: space-between; font-size: 11px; color: var(--ink-3); }
+.row.axisrow { height: 24px; } .row.axisrow .s, .row.axisrow .t { font-size: 10px; letter-spacing: 0.1em; color: var(--ink-3); }
+.tip { position: absolute; bottom: 18px; left: 0; z-index: 2; background: var(--bg-3); border: 1px solid var(--line-2); border-radius: 4px; padding: 6px 10px; font-size: 12px; color: var(--ink-2); white-space: nowrap; pointer-events: none; opacity: 0; transition: opacity 0.15s; }
+.row:hover .tip { opacity: 1; }
+.legend { display: flex; gap: 20px; font-size: 12px; color: var(--ink-3); margin-top: 14px; flex-wrap: wrap; }
+.legend i { display: inline-block; width: 14px; height: 8px; border-radius: 2px; background: var(--dim); vertical-align: middle; margin-right: 6px; }
+.legend i.f { background: #4a4f60; } .legend i.w { width: 2px; height: 12px; background: var(--ink-2); border-radius: 0; }
+.note { font-size: 13px; color: var(--ink-3); margin: 16px 0 0; }
+
+.prose { margin: 0; font-size: 15px; color: var(--ink-2); }
+table { width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: 13px; border-top: 1px solid var(--line-2); }
+th { font-weight: 400; font-size: 11px; letter-spacing: 0.1em; color: var(--ink-3); text-align: right; padding: 10px 0; border-bottom: 1px solid var(--line); }
+th:first-child, td:first-child { text-align: left; color: var(--ink-2); }
+td { text-align: right; padding: 9px 0; border-bottom: 1px solid var(--line); }
+tr.hot td:first-child { color: var(--ink); } tr.hot td.sel { color: var(--accent); }
+td.ref { color: var(--accent); }
+tr.click { cursor: pointer; } tr.click:hover td { background: var(--bg-2); }
+td .sub { color: var(--ink-3); font-size: 11px; }
+
+.explain { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px; }
+.step { display: flex; flex-direction: column; gap: 10px; padding-top: 16px; border-top: 1px solid var(--line-2); }
+.step .n { font-family: var(--mono); font-size: 12px; color: var(--accent); letter-spacing: 0.1em; }
+.step h3 { margin: 0; font-size: 17px; font-weight: 500; }
+.step p { margin: 0; font-size: 14px; color: var(--ink-2); }
+
+footer { border-top: 1px solid var(--line); }
+footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 24px; font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; color: var(--ink-3); text-transform: uppercase; }
+
+@media (max-width: 900px) {
+  .hero, .two { grid-template-columns: minmax(0, 1fr); gap: 40px; }
+  .hero { padding: 48px 0 40px; }
+  .links, .stamp { display: none; }
+  .explain { grid-template-columns: minmax(0, 1fr); }
+  .row { grid-template-columns: 60px minmax(0, 1fr) 76px 28px; gap: 10px; }
+  .panel { padding: 20px; }
+  .sec-head { flex-direction: column; align-items: flex-start; gap: 6px; }
+  .axis span:nth-child(even) { display: none; }
+  .stat small { max-width: none; }
+  .y { font-size: 10px; }
+}
+@media (max-width: 520px) { .fields { grid-template-columns: minmax(0, 1fr); } .verdict b { font-size: 32px; } }
+</style>
+</head>
+<body>
+
+<nav><div class="wrap">
+  <a class="brand" href="/">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f08a4b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20 L12 4 L21 20 Z"></path><path d="M8 20 L12 12 L16 20"></path></svg>
+    <div>konaqualify<span>.com</span></div>
+  </a>
+  <div class="links"><a href="#calc">Calculator</a><a href="#needed">What it takes</a><a href="#races">Races</a><a href="#standards">The standard</a><a href="#how">How it works</a></div>
+  <div class="stamp" id="stamp">Data thru —</div>
+</div></nav>
+
+<main class="wrap">
+  <div class="hero">
+    <div style="display:flex;flex-direction:column;gap:28px;padding-top:12px;">
+      <div class="eyebrow hot">IRONMAN World Championship · age-group qualifying</div>
+      <h1>How fast is a Kona slot, <em>actually</em>?</h1>
+      <p class="lede">Every IRONMAN finish time is public. We take every finisher at every race and rank them the way IRONMAN does now — age-graded, men and women on one list — so you can see exactly where a time lands.</p>
+      <div class="stats" id="stats"></div>
+    </div>
+
+    <form class="panel" id="calc" onsubmit="return false;">
+      <div class="panel-head"><h2>Would I have qualified?</h2><div class="eyebrow">2026 rules, applied to real fields</div></div>
+      <div class="fields">
+        <div class="field"><label for="race">Race</label><div class="control"><select id="race"></select><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8c8f99" stroke-width="2"><path d="M6 9l6 6 6-6"></path></svg></div></div>
+        <div class="field"><label for="year">Year</label><div class="control"><select id="year"></select><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8c8f99" stroke-width="2"><path d="M6 9l6 6 6-6"></path></svg></div></div>
+        <div class="field"><label for="ag">Age group</label><div class="control"><select id="ag"></select><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8c8f99" stroke-width="2"><path d="M6 9l6 6 6-6"></path></svg></div></div>
+        <div class="field"><label for="time">Your finish time</label><div class="control" id="timebox"><input id="time" inputmode="numeric" placeholder="9:45:00" value="9:45:00" autocomplete="off"><span class="hint">h:mm:ss</span></div></div>
+        <div class="field"><label>Standard × <span id="mult">—</span></label><div class="control out"><span class="val" id="graded">—</span><span class="hint">age-graded</span></div></div>
+        <div class="field"><label for="slots">Slots at this race <i id="slots-src"></i></label><div class="control" id="slotsbox"><input id="slots" inputmode="numeric" autocomplete="off"><span class="hint">total AG slots</span></div></div>
+      </div>
+      <div class="result" id="result" aria-live="polite">
+        <div class="verdict"><b id="verdict">—</b><span id="margin"></span></div>
+        <p id="explain">Enter a finish time to see where it would have landed.</p>
+      </div>
+      <div class="years">
+        <div class="lab"><span id="years-title">Same time, other years</span><span class="mono" id="years-sum"></span></div>
+        <div class="ylist" id="ylist"></div>
+      </div>
+    </form>
+  </div>
+
+  <section id="needed" class="two">
+    <div>
+      <div class="sec-head"><h2 id="chart-title">What each age group needed</h2><div class="eyebrow">Time to make the pool · 2026 rules</div></div>
+      <div class="chart" id="chart"></div>
+      <div class="legend"><span><i></i>Men</span><span><i class="f"></i>Women</span><span><i class="w"></i>Age-group winner (automatic slot)</span></div>
+      <p class="note" id="chart-note"></p>
+    </div>
+    <div id="standards">
+      <div class="sec-head"><h2>The Kona Standard</h2><div class="eyebrow">Multiplier</div></div>
+      <p class="prose">Your finish time × your group's multiplier = your age-graded time. Every non-winner at a race is ranked on that one number, men and women together. Only the top of the list goes to Kona.</p>
+      <table id="stdtable" style="margin-top:20px;"><thead><tr><th>Age</th><th>Men</th><th>Women</th></tr></thead><tbody></tbody></table>
+      <p class="note" id="std-note"></p>
+    </div>
+  </section>
+
+  <section id="races" style="padding-top:0;">
+    <div class="sec-head"><h2>Race by race <span>— most recent edition, 2026 rules</span></h2><div class="eyebrow">Click a row to load it</div></div>
+    <table id="racetable"><thead><tr><th>Race</th><th>Edition</th><th>Finishers</th><th>Slots</th><th>Pool cutoff<br><span class="sub">age-graded</span></th><th>M40–44 needs</th><th>F40–44 needs</th></tr></thead><tbody></tbody></table>
+    <p class="note">Cutoff is the age-graded time of the last Performance Pool slot after every age-group winner takes one, with no roll-down. "Needs" divides that cutoff back out by the group's standard — the raw finish time that would have made the pool. Slot counts marked ~ are assumed, not verified.</p>
+  </section>
+
+  <section id="how" style="padding-top:0;">
+    <div class="sec-head"><h2>How qualifying works now</h2><div class="eyebrow">2026 cycle onward</div></div>
+    <div class="explain">
+      <div class="step"><div class="n">01</div><h3>Winners go first</h3><p>Each age-group winner, men and women separately, gets an automatic slot. If they decline, it rolls to second, then third.</p></div>
+      <div class="step"><div class="n">02</div><h3>Everyone else is age-graded</h3><p>Every remaining slot goes into one Performance Pool. Each athlete's finish time is multiplied by their group's Kona Standard, and the whole field is ranked on that number regardless of age or sex.</p></div>
+      <div class="step"><div class="n">03</div><h3>The list rolls down</h3><p>Slots go to the highest-ranked athletes who accept, in order. Roughly 3,000 Kona slots exist across the season; at a typical race, two to four percent of finishers get one.</p></div>
+    </div>
+  </section>
+</main>
+
+<footer><div class="wrap"><div>Independent · not affiliated with IRONMAN · results are public record</div><div id="foot-right">Updated after every race weekend</div></div></footer>
+
+<script id="data" type="application/json">/*__DATA__*/</script>
+<script>
+(function () {
+  const DATA = JSON.parse(document.getElementById('data').textContent);
+  const STD = DATA.standards, RACES = DATA.races;
+  const $ = (id) => document.getElementById(id);
+  const short = (r) => r.race.replace('IRONMAN ', '');
+  const toSec = (s) => { if (!s) return null; const m = String(s).trim().match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/); if (!m) return null; return (+m[1]) * 3600 + (+m[2]) * 60 + (+(m[3] || 0)); };
+  const fmt = (sec) => { sec = Math.round(sec); const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60; return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`; };
+  const fmtDelta = (sec) => { sec = Math.abs(Math.round(sec)); return sec >= 3600 ? fmt(sec) : `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`; };
+  const agLabel = (k) => `${k[0]}${k.slice(1).replace('-', '–')}`;
+  const mult = (k) => STD[k[0]][k.slice(1)] ?? null;
+  const AG_ORDER = (a, b) => (a[0] === b[0] ? a.localeCompare(b) : a[0] === 'M' ? -1 : 1);
+
+  // ---- simulate the 2026 system on one race-year
+  const simCache = new Map();
+  function simulate(race, year, slots) {
+    const key = `${race.slug}/${year}/${slots}`; if (simCache.has(key)) return simCache.get(key);
+    const Y = race.years[year]; const winners = []; const pool = [];
+    for (const [k, arr] of Object.entries(Y.div)) { const m = mult(k); if (m == null || !arr.length) continue; winners.push({ ag: k, sec: arr[0] }); for (let i = 1; i < arr.length; i++) pool.push({ ag: k, sec: arr[i], g: arr[i] * m }); }
+    pool.sort((a, b) => a.g - b.g);
+    const poolSlots = Math.max(0, slots - winners.length); const cut = pool[Math.min(poolSlots, pool.length) - 1] || null;
+    const poolByAg = {}; pool.slice(0, poolSlots).forEach((p) => { poolByAg[p.ag] = (poolByAg[p.ag] || 0) + 1; });
+    const out = { Y, winners, pool, poolSlots, cutG: cut ? cut.g : null, poolByAg, finishers: Y.finishers };
+    simCache.set(key, out); return out;
+  }
+  const slotsFor = (race, year) => { const y = race.years[year]; const v = $('slots').value.trim(); return v && +v > 0 && year === curYear() ? +v : y.slots; };
+  const curYear = () => $('year').value;
+
+  // ---- populate controls
+  const raceSel = $('race'), yearSel = $('year'), agSel = $('ag');
+  RACES.forEach((r) => { const o = document.createElement('option'); o.value = r.slug; o.textContent = `Ironman ${short(r)}`; raceSel.appendChild(o); });
+  ['M', 'F'].forEach((sex) => STD.groups.forEach((g) => { if (STD[sex][g] == null) return; const o = document.createElement('option'); o.value = sex + g; o.textContent = `${sex} ${g.replace('-', '–')}`; agSel.appendChild(o); }));
+  agSel.value = 'M45-49';
+  function fillYears(race, keep) {
+    const ys = Object.keys(race.years).sort().reverse(); yearSel.innerHTML = '';
+    ys.forEach((y) => { const o = document.createElement('option'); o.value = y; o.textContent = y + (race.years[y].flag ? ' ⚠' : ''); yearSel.appendChild(o); });
+    yearSel.value = keep && race.years[keep] ? keep : (ys.find((y) => !race.years[y].flag) || ys[0]);
+    $('slots').value = race.years[yearSel.value].slots; setSlotsSrc(race);
+  }
+  function setSlotsSrc(race) { const y = race.years[curYear()]; $('slots-src').textContent = y.slotsVerified ? 'verified' : 'assumed — edit me'; $('slotsbox').classList.toggle('assumed', !y.slotsVerified); }
+
+  // ---- standards table
+  const tb = $('stdtable').querySelector('tbody');
+  STD.groups.forEach((g) => { if (STD.M[g] == null && STD.F[g] == null) return; const tr = document.createElement('tr'); tr.dataset.g = g;
+    tr.innerHTML = `<td>${g.replace('-', '–')}</td><td data-sex="M" class="${g === '30-34' ? 'ref' : ''}">${STD.M[g] == null ? '—' : STD.M[g].toFixed(4)}</td><td data-sex="F">${STD.F[g] == null ? '—' : STD.F[g].toFixed(4)}</td>`; tb.appendChild(tr); });
+  $('std-note').textContent = STD.reference + (STD.verified ? '' : ' Table reproduced from IRONMAN’s published standards; we are verifying it against the official document.');
+
+  // ---- stamp / footer
+  const allYears = RACES.flatMap((r) => Object.values(r.years).map((y) => y.date)).sort();
+  const latestDate = allYears[allYears.length - 1]; const latestRace = RACES.find((r) => Object.values(r.years).some((y) => y.date === latestDate));
+  $('stamp').textContent = `Data thru · IM ${short(latestRace)} · ${new Date(latestDate + 'T12:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}`;
+  const nEd = RACES.reduce((n, r) => n + Object.keys(r.years).length, 0); const nFin = RACES.reduce((n, r) => n + Object.values(r.years).reduce((m, y) => m + y.finishers, 0), 0);
+  $('foot-right').textContent = `${RACES.length} races · ${nEd} editions · ${nFin.toLocaleString()} finishers · ${allYears[0].slice(0, 4)}–${latestDate.slice(0, 4)}`;
+
+  // ---- race table
+  const rtb = $('racetable').querySelector('tbody');
+  RACES.forEach((r) => { const ys = Object.keys(r.years).sort().reverse(); const y = ys.find((k) => !r.years[k].flag) || ys[0]; const S = simulate(r, y, r.years[y].slots); const tr = document.createElement('tr'); tr.className = 'click'; tr.dataset.slug = r.slug; tr.dataset.year = y;
+    const need = (k) => S.cutG ? fmt(S.cutG / mult(k)) : '—';
+    tr.innerHTML = `<td>${short(r)}</td><td>${y}</td><td>${S.finishers.toLocaleString()}</td><td>${r.years[y].slotsVerified ? '' : '~'}${r.years[y].slots}</td><td>${S.cutG ? fmt(S.cutG) : '—'}</td><td>${need('M40-44')}</td><td>${need('F40-44')}</td>`;
+    tr.addEventListener('click', () => { raceSel.value = r.slug; fillYears(r, y); compute(); $('calc').scrollIntoView({ behavior: 'smooth', block: 'start' }); }); rtb.appendChild(tr); });
+
+  // ---- renderers
+  function renderStats(race, year, S) {
+    const pct = (100 * (S.winners.length + S.poolSlots) / S.finishers).toFixed(1) + '%';
+    const women = Object.entries(S.poolByAg).filter(([k]) => k[0] === 'F').reduce((n, [, v]) => n + v, 0);
+    const items = [
+      [pct, `of ${short(race)} ${year} finishers would get a slot`],
+      [`${S.winners.length} + ${S.poolSlots}`, `winner slots + performance-pool slots`],
+      [S.cutG ? fmt(S.cutG) : '—', `age-graded pool cutoff · ${women} of ${S.poolSlots} pool slots to women`],
+    ];
+    $('stats').innerHTML = items.map(([b, s]) => `<div class="stat"><b>${b}</b><small>${s}</small></div>`).join('');
+  }
+  function renderChart(race, year, S, hotKey) {
+    const ags = Object.keys(S.Y.div).filter((k) => mult(k) != null && S.Y.div[k].length).sort(AG_ORDER);
+    $('chart-title').innerHTML = `What each age group needed <span>— ${short(race)} ${year}</span>`;
+    const rows = ags.map((k) => ({ k, need: S.cutG ? S.cutG / mult(k) : null, win: S.Y.div[k][0], n: S.Y.div[k].length, slots: (S.poolByAg[k] || 0) + 1 }));
+    const all = rows.flatMap((r) => [r.need, r.win]).filter(Boolean);
+    const lo = Math.floor(Math.min(...all) / 1800) * 1800 - 1800, hi = Math.ceil(Math.max(...all) / 1800) * 1800 + 900;
+    const x = (s) => Math.max(0, Math.min(100, (s - lo) / (hi - lo) * 100));
+    const ticks = []; for (let t = Math.ceil(lo / 3600) * 3600; t <= hi; t += 3600) ticks.push(t);
+    let html = ''; let lastSex = null;
+    for (const r of rows) {
+      if (lastSex && r.k[0] !== lastSex) html += '<div class="row gap"></div>'; lastSex = r.k[0];
+      html += `<div class="row ${r.k === hotKey ? 'hot' : ''}"><div class="lab">${agLabel(r.k)}</div><div class="track">${r.need ? `<div class="bar ${r.k[0] === 'F' ? 'f' : ''}" style="width:${x(r.need).toFixed(1)}%"></div>` : ''}<div class="win" style="left:${x(r.win).toFixed(1)}%"></div><div class="tip">${r.n} finishers · winner ${fmt(r.win)} · ${r.slots} slot${r.slots === 1 ? '' : 's'} (1 winner${r.slots > 1 ? ` + ${r.slots - 1} pool` : ''})</div></div><div class="t">${r.need ? fmt(r.need) : '—'}</div><div class="s">${r.slots}</div></div>`;
+    }
+    html += `<div class="row axisrow"><div></div><div class="axis">${ticks.map((t) => `<span>${t / 3600}:00</span>`).join('')}</div><div class="t">NEEDS</div><div class="s">SLOTS</div></div>`;
+    $('chart').innerHTML = html;
+    const needs = rows.filter((r) => r.need).map((r) => r.need);
+    $('chart-note').textContent = S.cutG ? `Bars: the raw finish time that would have made the Performance Pool (age-graded cutoff ${fmt(S.cutG)} ÷ the group's standard). Raw requirements span ${fmt(Math.min(...needs))} to ${fmt(Math.max(...needs))}; age-graded, they are the same number. Winners' slots are automatic regardless of time.` + (S.Y.flag ? ` ⚠ ${S.Y.flag}` : '') : 'Not enough slots for a performance pool at this setting.';
+  }
+  function renderYears(race, ag, sec) {
+    const ys = Object.keys(race.years).sort(); let yes = 0, n = 0;
+    $('ylist').innerHTML = ys.map((y) => { const Y = race.years[y]; const S = simulate(race, y, slotsFor(race, y)); let cls = '', t = '';
+      if (Y.flag) { cls = 'flag'; t = '⚠'; }
+      else if (sec == null || mult(ag) == null) { t = '·'; }
+      else { const won = Y.div[ag] && sec <= Y.div[ag][0]; const ok = won || (S.cutG != null && sec * mult(ag) <= S.cutG); n++; if (ok) yes++; cls = ok ? 'yes' : 'no'; t = won ? 'won' : S.cutG ? (ok ? '−' : '+') + fmtDelta(sec - S.cutG / mult(ag)) : '—'; }
+      return `<div class="y ${cls} ${y === curYear() ? 'sel' : ''}" data-y="${y}"><div class="dot"></div><div>${y.slice(2)}</div><div>${t}</div></div>`; }).join('');
+    $('ylist').querySelectorAll('.y').forEach((el) => el.addEventListener('click', () => { yearSel.value = el.dataset.y; $('slots').value = race.years[yearSel.value].slots; setSlotsSrc(race); compute(); }));
+    $('years-sum').textContent = sec == null ? '' : `${yes} of ${n} editions`;
+    $('years-title').textContent = sec == null ? 'Other years' : `${fmt(sec)} as ${agLabel(ag)}, every ${short(race)} since ${ys[0]}`;
+  }
+
+  function compute() {
+    const race = RACES.find((r) => r.slug === raceSel.value); const year = curYear(); const ag = agSel.value; const m = mult(ag);
+    const slots = slotsFor(race, year); const S = simulate(race, year, slots);
+    $('mult').textContent = m == null ? '—' : m.toFixed(4);
+    tb.querySelectorAll('tr').forEach((tr) => { tr.classList.toggle('hot', tr.dataset.g === ag.slice(1)); tr.querySelectorAll('td[data-sex]').forEach((td) => td.classList.toggle('sel', tr.dataset.g === ag.slice(1) && td.dataset.sex === ag[0])); });
+    renderStats(race, year, S); renderChart(race, year, S, ag);
+
+    const sec = toSec($('time').value); const res = $('result');
+    $('timebox').classList.toggle('err', $('time').value.trim() !== '' && sec == null);
+    renderYears(race, ag, sec);
+    if (sec == null || m == null) { $('graded').textContent = '—'; res.className = 'result'; $('verdict').textContent = '—'; $('margin').textContent = ''; $('explain').textContent = 'Enter a finish time as h:mm:ss to see where it would have landed.'; return; }
+    const g = sec * m; $('graded').textContent = fmt(g);
+    const arr = S.Y.div[ag] || []; const won = arr.length && sec <= arr[0];
+    const rank = S.pool.filter((p) => p.g < g).length + 1; const pctile = (100 * rank / (S.pool.length + 1)).toFixed(1);
+    const agFin = arr.length; const agRank = arr.filter((t) => t < sec).length + 1;
+    if (won) { res.className = 'result yes'; $('verdict').textContent = 'WON AG'; $('margin').textContent = `${year} · automatic slot`;
+      $('explain').innerHTML = `<span class="mono">${fmt(sec)}</span> beats the ${agLabel(ag)} winner at ${short(race)} ${year} (<span class="mono">${fmt(arr[0])}</span>) — that's a slot before the age-grading even starts. ${agFin} finished in the group.`; return; }
+    if (S.cutG == null) { res.className = 'result'; $('verdict').textContent = 'NO POOL'; $('margin').textContent = `${slots} slots · ${S.winners.length} winners`; $('explain').textContent = 'Every slot goes to an age-group winner at this slot count; raise the slot number to see the performance pool.'; return; }
+    const ok = g <= S.cutG; const needRaw = S.cutG / m; const delta = needRaw - sec;
+    res.className = 'result ' + (ok ? 'yes' : 'no'); $('verdict').textContent = ok ? 'QUALIFIED' : 'MISSED'; $('margin').textContent = `${year} · by ${fmtDelta(delta)}`;
+    $('explain').innerHTML = `At ${short(race)} ${year} with ${slots} slots, ${S.winners.length} go to age-group winners and ${S.poolSlots} to the pool. The pool cutoff is <span class="mono">${fmt(S.cutG)}</span> age-graded — for ${agLabel(ag)} that's a raw <span class="mono">${fmt(needRaw)}</span>. Your <span class="mono">${fmt(g)}</span> ranks <span class="mono">${rank}</span> of ${S.pool.length.toLocaleString()} in the pool (top ${pctile}%), ${agRank}${agRank === 1 ? 'st' : agRank === 2 ? 'nd' : agRank === 3 ? 'rd' : 'th'} of ${agFin} in your group${ok ? '' : ', before any roll-down'}.`;
+  }
+
+  raceSel.addEventListener('change', () => { fillYears(RACES.find((r) => r.slug === raceSel.value), curYear()); compute(); });
+  yearSel.addEventListener('change', () => { const r = RACES.find((x) => x.slug === raceSel.value); $('slots').value = r.years[curYear()].slots; setSlotsSrc(r); compute(); });
+  agSel.addEventListener('change', compute); $('time').addEventListener('input', compute); $('slots').addEventListener('input', compute);
+  fillYears(RACES[0]); compute();
+})();
+</script>
+</body>
+</html>
