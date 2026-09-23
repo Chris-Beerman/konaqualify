@@ -1,0 +1,17 @@
+{
+  "_note": "Total age-group World Championship slots per race-year (race year, not championship year). 'verified' sources: CoachCox preset allocations for Ironman Wisconsin (coachcox.co.uk/imstats/series/29/slots/), where the preset labelled 'for YYYY' is the championship year = race year + 1. Anything not listed falls back to `default` and is shown on the site as assumed.",
+  "default": 40,
+  "wisconsin": {
+    "2015": { "slots": 50, "verified": true },
+    "2016": { "slots": 40, "verified": true },
+    "2017": { "slots": 40, "verified": true },
+    "2018": { "slots": 40, "verified": true },
+    "2019": { "slots": 40, "verified": true },
+    "2021": { "slots": 45, "verified": true },
+    "2022": { "slots": 55, "verified": true },
+    "2023": { "slots": 80, "verified": true, "note": "20 men / 60 women — split championships (men Nice, women Kona)" },
+    "2024": { "slots": 100, "verified": true, "note": "65 men / 35 women — split championships" },
+    "2025": { "slots": 40, "verified": true },
+    "2026": { "slots": 55, "verified": true }
+  }
+}

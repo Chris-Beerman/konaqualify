@@ -1,0 +1,17 @@
+{
+  "name": "Kona Standard — IRONMAN age-graded multipliers (full distance)",
+  "reference": "M30-34 = 1.0000. Built by IRONMAN from the top 20% of IRONMAN World Championship finishers over the prior five editions, per age group and sex.",
+  "source": "IRONMAN published table, as reproduced at nyxendurance.com; verify against IRONMAN's official document before relying on it.",
+  "verified": false,
+  "groups": ["18-24", "25-29", "30-34", "35-39", "40-44", "45-49", "50-54", "55-59", "60-64", "65-69", "70-74", "75-79", "80-84", "85-89"],
+  "M": {
+    "18-24": 0.9698, "25-29": 0.9921, "30-34": 1.0000, "35-39": 0.9895, "40-44": 0.9683,
+    "45-49": 0.9401, "50-54": 0.9002, "55-59": 0.8667, "60-64": 0.8262, "65-69": 0.7552,
+    "70-74": 0.6876, "75-79": 0.6768, "80-84": 0.5555, "85-89": 0.5416
+  },
+  "F": {
+    "18-24": 0.8567, "25-29": 0.8961, "30-34": 0.8977, "35-39": 0.8866, "40-44": 0.8707,
+    "45-49": 0.8501, "50-54": 0.8125, "55-59": 0.7778, "60-64": 0.7218, "65-69": 0.6828,
+    "70-74": 0.6439, "75-79": 0.5521, "80-84": null, "85-89": null
+  }
+}
