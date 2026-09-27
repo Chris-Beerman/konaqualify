@@ -54,7 +54,7 @@ h1 em { font-style: normal; color: var(--accent); }
 .field { display: flex; flex-direction: column; gap: 6px; }
 .field label { font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3); display: flex; justify-content: space-between; }
 .field label i { font-style: normal; color: var(--ink-3); text-transform: none; letter-spacing: 0; }
-.control { position: relative; height: 44px; display: flex; align-items: center; background: var(--bg-3); border: 1px solid var(--line-2); border-radius: 4px; font-family: var(--mono); font-size: 15px; color: var(--ink); }
+.control { position: relative; height: 44px; display: flex; align-items: center; background: var(--bg-3); border: 1px solid var(--line-2); border-radius: 4px; font-family: var(--mono); font-size: 16px; color: var(--ink); } /* 16px: below that, iOS Safari zooms the page when a field is focused */
 .control select, .control input { appearance: none; -webkit-appearance: none; width: 100%; height: 100%; background: transparent; border: 0; color: var(--ink); font: inherit; padding: 0 14px; outline: none; }
 .control input::placeholder { color: var(--ink-3); }
 .control:focus-within { border-color: var(--accent); }
@@ -221,7 +221,35 @@ footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wr
   const STD = DATA.standards, RACES = DATA.races;
   const $ = (id) => document.getElementById(id);
   const short = (r) => r.race.replace('IRONMAN ', '');
-  const toSec = (s) => { if (!s) return null; const m = String(s).trim().match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/); if (!m) return null; return (+m[1]) * 3600 + (+m[2]) * 60 + (+(m[3] || 0)); };
+  // ---- finish-time entry. iOS's number keypad has no colon, so a time can be typed as bare digits (94500 → 9:45:00)
+  // and the box adds the colons as you type; separators (: . , space h m s) are accepted too. Bare digits read as
+  // h mm ss, with two-digit hours when they start with 0 or 1 — an IRONMAN finish is 7–17 h, so a leading 1 can only mean 10–17.
+  const timeParts = (raw) => {
+    const s = String(raw ?? '').trim(); let g = s.split(/[^0-9]+/).filter(Boolean);
+    if (g.length === 1 && /^[0-9]+$/.test(s)) { const d = g[0], n = d[0] === '0' || d[0] === '1' ? 2 : 1; g = [d.slice(0, n), d.slice(n, n + 2), d.slice(n + 2, n + 4)].filter(Boolean); }
+    return g.slice(0, 3).map((x) => x.slice(0, 2));
+  };
+  const hoursDone = (h) => h.length === 2 || (h.length === 1 && h >= '2');
+  const timeStatus = (raw) => {  // { sec, err, partial } — partial = still being typed (neither valid nor wrong yet)
+    const p = timeParts(raw); if (!p.length) return { sec: null, err: false, partial: false };
+    const h = p[0]; let m = p[1] ?? '', s = p.length === 3 ? p[2] : (p.length === 2 && m.length === 2 ? '00' : '');
+    if (p.length === 3 && m.length === 1) m = '0' + m;
+    if (+h > 23 || (m.length === 2 && +m > 59) || (s.length === 2 && +s > 59)) return { sec: null, err: true, partial: false };
+    if (m.length !== 2 || s.length !== 2) return { sec: null, err: false, partial: true };
+    return { sec: +h * 3600 + +m * 60 + +s, err: false, partial: false };
+  };
+  const toSec = (raw) => timeStatus(raw).sec;
+  const maskTime = (el, inserting) => {  // rewrite the box as h:mm:ss while typing, keeping the caret where it was
+    const raw = el.value; if (!raw) return;
+    const p = timeParts(raw); const before = raw.slice(0, el.selectionStart ?? raw.length).replace(/\D/g, '').length;
+    let out = p.join(':');
+    if (inserting && p.length && p.length < 3 && (p.length === 1 ? hoursDone(p[0]) : p[1].length === 2)) out += ':';
+    if (out === raw) return;
+    el.value = out;
+    let pos = 0, seen = 0; while (pos < out.length && seen < before) { if (/[0-9]/.test(out[pos])) seen++; pos++; }
+    if (out[pos] === ':') pos++;
+    try { el.setSelectionRange(pos, pos); } catch (e) { /* not focused */ }
+  };
   const fmt = (sec) => { sec = Math.round(sec); const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60; return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`; };
   const fmtDelta = (sec) => { sec = Math.abs(Math.round(sec)); return sec >= 3600 ? fmt(sec) : `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`; };
   const agLabel = (k) => `${k[0]}${k.slice(1).replace('-', '–')}`;
@@ -324,10 +352,10 @@ footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wr
     tb.querySelectorAll('tr').forEach((tr) => { tr.classList.toggle('hot', tr.dataset.g === ag.slice(1)); tr.querySelectorAll('td[data-sex]').forEach((td) => td.classList.toggle('sel', tr.dataset.g === ag.slice(1) && td.dataset.sex === ag[0])); });
     renderStats(race, year, S); renderChart(race, year, S, ag);
 
-    const sec = toSec($('time').value); const res = $('result');
-    $('timebox').classList.toggle('err', $('time').value.trim() !== '' && sec == null);
+    const st = timeStatus($('time').value), sec = st.sec; const res = $('result');
+    $('timebox').classList.toggle('err', st.err || (st.partial && document.activeElement !== $('time')));
     renderYears(race, ag, sec);
-    if (sec == null || m == null) { $('graded').textContent = '—'; res.className = 'result'; $('verdict').textContent = '—'; $('margin').textContent = ''; $('explain').textContent = 'Enter a finish time as h:mm:ss to see where it would have landed.'; return; }
+    if (sec == null || m == null) { $('graded').textContent = '—'; res.className = 'result'; $('verdict').textContent = '—'; $('margin').textContent = ''; $('explain').textContent = 'Enter a finish time — h:mm:ss, or just the digits (94500) — to see where it would have landed.'; return; }
     const g = sec * m; $('graded').textContent = fmt(g);
     const arr = S.Y.div[ag] || []; const won = arr.length && sec <= arr[0];
     const rank = S.pool.filter((p) => p.g < g).length + 1; const pctile = (100 * rank / (S.pool.length + 1)).toFixed(1);
@@ -342,7 +370,9 @@ footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wr
 
   raceSel.addEventListener('change', () => { fillYears(RACES.find((r) => r.slug === raceSel.value), curYear()); compute(); });
   yearSel.addEventListener('change', () => { const r = RACES.find((x) => x.slug === raceSel.value); $('slots').value = r.years[curYear()].slots; setSlotsSrc(r); compute(); });
-  agSel.addEventListener('change', compute); $('time').addEventListener('input', compute); $('slots').addEventListener('input', compute);
+  agSel.addEventListener('change', compute); $('slots').addEventListener('input', compute);
+  $('time').addEventListener('input', (e) => { maskTime(e.target, !/^delete/.test(e.inputType || '')); compute(); });
+  $('time').addEventListener('blur', () => { const s = toSec($('time').value); if (s != null) $('time').value = fmt(s); compute(); });
   fillYears(RACES[0]); compute();
 })();
 </script>
